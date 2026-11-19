@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RealX Merchant Meeting Engine · Phase 1</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color-scheme:dark;background:#0b111b;color:#e6eef9}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#183246 0,#0b111b 34%)}main{max-width:1440px;margin:auto;padding:25px}h1{font-size:30px;letter-spacing:-1px;margin:4px 0}h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;margin:0 0 8px}.sub,.muted,small{color:#aabbd0}.sub{font-size:13px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#7dc3b0;font-weight:750}.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn,button,select,input,textarea{font:inherit;border:1px solid #3e5065;background:#172436;color:#e6eef9;border-radius:9px;padding:10px}button,.btn{cursor:pointer}button:hover,.btn:hover{border-color:#72d8b1}button.primary{border:0;background:#83dfb6;color:#0b2a20;font-weight:750}button:disabled{cursor:not-allowed;opacity:.45}.btn{text-decoration:none;display:inline-block}input,select,textarea{width:100%;min-width:0}textarea{min-height:77px;resize:vertical}label{display:block;font-size:12px;color:#b1c2d5;margin:10px 0 5px}label.check{display:flex;gap:9px;align-items:center;font-size:13px;margin-top:14px}label.check input{width:auto}.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:18px 0}.metric{background:#142132;border:1px solid #334455;padding:17px;border-radius:13px}.metric strong{font-size:27px;letter-spacing:-.7px;display:block}.metric span{font-size:12px;color:#a9bed2}.layout{display:grid;grid-template-columns: minmax(320px,.9fr) minmax(440px,1.2fr);gap:15px}.panel{border:1px solid #32475b;background:rgba(17,29,44,.96);border-radius:15px;padding:18px;margin-bottom:14px}.line{border-top:1px solid #304255;margin:17px 0}.row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tag{display:inline-block;font-size:10px;color:#b8d0dd;border:1px solid #536c81;border-radius:60px;padding:4px 8px;white-space:nowrap}.tag.warn{color:#f7c99c;border-color:#86673f}.tag.green{color:#9de9c4;border-color:#3a8c67}.banner{background:#1b3137;border:1px solid #376659;border-radius:10px;padding:12px;margin:12px 0;font-size:12px;color:#b3e4cb}.alert{background:#422c30;border:1px solid #a2676b;color:#ffcece;padding:12px;border-radius:10px}.search{display:flex;gap:9px;margin:12px 0}.scroll{max-height:630px;overflow:auto}.lead{width:100%;display:block;text-align:left;background:#182739;border:1px solid #34485c;padding:13px;border-radius:10px;margin:6px 0}.lead.active{border-color:#83dfb6;background:#1b353c}.leadtitle{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-bottom:5px;font-weight:700}.leaddetail{font-size:12px;color:#aebdd1}.hint{font-size:12px;line-height:1.5;color:#b0c2d2}.script{white-space:pre-wrap;background:#0a1724;border:1px solid #31465b;border-radius:11px;padding:14px;line-height:1.6;font-size:14px;min-height:100px}.step{font-size:11px;color:#80e1b5;font-weight:700;margin-right:7px}.toast{padding:12px 14px;border-radius:10px;background:#23473a;color:#b8f2d1;margin-top:10px}.toast.error{background:#592e37;color:#ffd0d2}.pill{display:inline-block;margin-right:5px;font-size:11px;border-radius:6px;padding:5px 7px;background:#243549}.mini{font-size:12px}.danger{color:#efaaab}a{color:#b1f1cc}.readonly{white-space:pre-wrap;font-size:12px;line-height:1.65;max-height:240px;overflow:auto;background:#0c1824;border-radius:9px;padding:13px;border:1px solid #354a61}footer{margin:18px 0;font-size:12px;color:#8eabc1}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #87e1bd}@media(max-width:970px){.layout{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){main{padding:12px}.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}h1{font-size:24px}}
+</style></head><body><main>
+<header class="top"><div><div class="eyebrow">RealX / Phase 01 / acquisition operations</div><h1>Merchant Meeting Engine</h1><div class="sub">Directory candidate → decision owner → documented conversation → booked meeting → AE acceptance</div></div><div class="controls"><button id="loadSeed" class="primary">Load 23 food candidates</button><button id="importCsv">Import CSV</button><button id="exportCsv">Export AE CSV</button><button id="exportJson">Backup JSON</button><input hidden type="file" id="csvInput" accept=".csv,text/csv"/></div></header>
+<div class="banner"><strong>Actual working scope:</strong> local research queue, qualification, consent-gated message drafts, manual receipt logging, meeting records, copyable AE handoffs and measured funnel. <strong>Not live:</strong> Gmail sending, calendar booking, independent merchant-data verification, RealX onboarding or payment integration. All seeded profiles are directory candidates, not verified partners or leads.</div>
+<div id="kpis" class="kpis"></div>
+<div class="layout"><section>
+<div class="panel"><div class="row"><h2>Merchant pipeline</h2><span class="tag" id="queueCount">0 candidates</span></div><div class="search"><input id="search" placeholder="Search merchant or sector"><select id="filter"><option value="ALL">All stages</option><option value="SOURCED">Sourced</option><option value="VERIFIED">Verified</option><option value="CONTACTED">Contacted</option><option value="MEETING_BOOKED">Meeting booked</option><option value="HANDOFF">Handoff</option></select></div><div id="leads" class="scroll"><p class="muted">Load seed data or import CSV to begin.</p></div></div>
+<div class="panel"><h2>Measured funnel</h2><p id="funnel" class="hint">No actual external events recorded.</p><div class="line"></div><h3>What to optimize first</h3><p class="hint">Use Aadil's proposed cost-per-acquisition model only as a hypothesis until the RealX team agrees on a qualified-meeting definition, attribution window and compensation terms.</p></div>
+<div class="panel"><h2>Recent external receipts</h2><div id="events" class="hint">No events</div></div>
+</section><section>
+<div class="panel"><h2><span class="step">01</span>Account verification</h2><div id="selected" class="muted">Select an account.</div><form id="profileForm"><div class="grid2"><div><label>Decision-owner role / name</label><input id="buyer" placeholder="e.g. owner or partnerships manager"></div><div><label>Reachable business route</label><input id="contact" placeholder="e.g. manager at branch, consented email"></div></div><div class="grid2"><label class="check"><input type="checkbox" id="profileVerified"> I personally checked this live profile</label><label class="check"><input type="checkbox" id="ownerVerified"> I confirmed this decision owner</label></div><label>What did the buyer actually say? (leave empty if unknown)</label><textarea id="confirmedNeed" placeholder="Direct quote or factual notes, not an inferred pain."></textarea><div class="grid2"><div><label>Contact permission status</label><select id="permission"><option value="UNCONFIRMED">Unconfirmed — no electronic pitch</option><option value="CONSENTED">Consent obtained</option><option value="DECLINED">Declined — stop</option></select></div><div><label>Consent/permission evidence ref</label><input id="permissionRef" placeholder="Meeting note / authorized thread"></div></div><label class="check"><input type="checkbox" id="outreachAuthorized"> RealX team authorized merchant outreach</label><label>RealX authorization receipt/ref</label><input id="authorizationRef" placeholder="Owner approval message ref"></input><label>Next concrete action</label><input id="nextAction" placeholder="Speak to manager at 3pm"></input><div class="row"><button class="primary" type="submit">Save verification</button><span class="hint">Evidence is self-reported; never implies commercial confirmation.</span></div></form></div>
+<div class="panel"><h2><span class="step">02</span>Two value hypotheses + talk track</h2><div class="grid2"><div><label>Hypothesis</label><select id="hypothesis"><option value="STUDENT_ACQUISITION">A — Reach verified students</option><option value="OFF_PEAK">B — Test quieter trading hours</option></select></div><div><label>Contact mode</label><select id="channel"><option value="IN_PERSON">In-person question</option><option value="PHONE">Call / routing question</option><option value="EMAIL">Permitted email</option><option value="DM">Permitted DM</option></select></div></div><div class="script" id="draft">Select a candidate to prepare a conversation.</div><div class="row" style="margin-top:10px"><button id="copyDraft" type="button">Copy talk track</button><a id="profileLink" href="#" target="_blank" rel="noopener noreferrer">View source profile</a><span class="hint">Copy ≠ sent. Record a real attempt separately.</span></div></div>
+<div class="panel"><h2><span class="step">03</span>Record external event</h2><form id="eventForm"><div class="grid2"><div><label>Actual outcome</label><select id="eventType"><option value="ATTEMPT">Approached / called</option><option value="REPLY">Substantive reply</option><option value="DISCOVERY">Discovery completed</option><option value="MEETING_BOOKED">Meeting mutually confirmed</option><option value="HANDOFF_ACCEPTED">Account executive accepted handoff</option><option value="REJECTION">Declined / disqualified</option></select></div><div><label>Actor (required for meetings/handoffs)</label><input id="eventActor" placeholder="Manager / accepting AE"></div></div><div id="meetingField" hidden><label>Exact booked meeting time — Qatar local</label><input type="datetime-local" id="meetingAt"></div><label>Exact factual note</label><textarea id="eventNote" required placeholder="Who said what, outcome, and any caveats."></textarea><label>External evidence reference</label><input id="eventReceipt" required placeholder="Call log entry, email thread ID, written visit note"></input><button class="primary" type="submit">Log actual event</button></form></div>
+<div class="panel"><h2><span class="step">04</span>AE handoff card</h2><div id="handoffStatus" class="hint">A booked meeting, verified owner and recorded contact route are required.</div><div id="handoff" class="readonly">Nothing to hand off yet.</div><div class="row" style="margin-top:10px"><button id="copyHandoff">Copy AE handoff</button><span class="hint">An accepted handoff requires an actual AE acknowledgment.</span></div></div>
+</section></div><div role="status" aria-live="polite" id="toast"></div><footer>MarketOS V2 is the underlying local event ledger. This screen is a focused RealX acquisition extension, not a CRM or direct-message automation. Single-file offline edition. Export JSON backups; browser storage may be unavailable.</footer>
+</main><script>
+const EMBEDDED_FOOD_CSV = "company,instagram_url,instagram_handle,sector,hypothesis_to_check,directory_source,evidence_state,next_action\nDeem,https://www.instagram.com/deem_qtr/,deem_qtr,Food/Catering,Catering quote request,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nBurgies,https://www.instagram.com/burgies.qa/,burgies.qa,Food/Restaurant,Menu \u2192 order,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nJommar Dates,https://www.instagram.com/jommar_dates/,jommar_dates,Food/Retail,Gift box order,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nBotamba,https://www.instagram.com/botamba.qtr/,botamba.qtr,Food/Restaurant,Menu \u2192 booking,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nTaco Tac Qatar,https://www.instagram.com/tacotac_qatar/,tacotac_qatar,Food/Restaurant,Menu \u2192 delivery,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nShawarma H,https://www.instagram.com/shawarmah.qa/,shawarmah.qa,Food/Restaurant,Menu \u2192 order,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nOlivitta,https://www.instagram.com/olivitta.qa/,olivitta.qa,Food/Restaurant,Table \u2192 booking,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nAlmazaya Carthage,https://www.instagram.com/almazayacarthagerestaurant/,almazayacarthagerestaurant,Food/Restaurant,Table \u2192 booking,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nThe Burga,https://www.instagram.com/the.burga/,the.burga,Food/Restaurant,Menu \u2192 order,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nPrintaty Cafe,https://www.instagram.com/printaty.cafe/,printaty.cafe,Food/Cafe,Menu \u2192 purchase,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nOthough,https://www.instagram.com/othough.qatar/,othough.qatar,Food/Retail,Gift order,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nRidge La Cuisine,https://www.instagram.com/ridge.qa/,ridge.qa,Food/Restaurant,Reservation \u2192 confirmation,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nThra Qatar,https://www.instagram.com/thra_qatar974/,thra_qatar974,Events/Catering,Event quote inquiry,https://instadaleel.com/browse?city=doha&scope=local,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nTariq Sweets,https://www.instagram.com/tariqsweets.qa/,tariqsweets.qa,Food/Sweets,Dessert order,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nCake and More,https://www.instagram.com/c.a.m.qtr/,c.a.m.qtr,Food/Bakery,Cake order,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nThe Cake Corner,https://www.instagram.com/the.cake.corner.qtr/,the.cake.corner.qtr,Food/Bakery,Cake customization \u2192 quote,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nNawar\u2019s Bakery,https://www.instagram.com/nawars.qa/,nawars.qa,Food/Bakery,Bakery order,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nSugar & Spice Qatar,https://www.instagram.com/sugarandspice9/,sugarandspice9,Food/Cafe,Order \u2192 purchase,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nToastie Doha,https://www.instagram.com/toastiedoha/,toastiedoha,Food/Restaurant,Sandwich order,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nVolume Cafe,https://www.instagram.com/volume.qa/,volume.qa,Food/Cafe,Menu \u2192 purchase,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nCafe Noir,https://www.instagram.com/cafenoir.qa/,cafenoir.qa,Food/Cafe,Menu \u2192 purchase,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nRosemary Doha,https://www.instagram.com/rosemarycafe.qa/,rosemarycafe.qa,Food/Cafe,Online order \u2192 checkout,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\nBatteel,https://www.instagram.com/batteelbakery/,batteelbakery,Food/Bakery,Catering order,https://instadaleel.com/d/food/doha,DIRECTORY_LISTED_NOT_PROFILE_VERIFIED,\"Open business profile, verify active and observe public inquiry path\"\n";
+const TRACKS = ['REALX','PAID_B2B','UHUB'];
+const STAGES = ['SOURCED','VERIFIED','CONTACTED','REPLIED','MEETING_BOOKED','HANDOFF','DISCOVERY','PROPOSED','PILOT','WON','LOST'];
+const EVIDENCE = ['HYPOTHESIS','PUBLIC_EVIDENCE','BUYER_CONFIRMED','TRANSACTION_VERIFIED'];
+const valid = (v, arr) => arr.includes(v);
+const blank = () => ({schema:2, accounts:[], events:[]});
+function validateAccount(a) {
+  if (!a || typeof a !== 'object') throw Error('Account must be an object');
+  if (!valid(a.track, TRACKS)) throw Error('Invalid track');
+  if (!String(a.company||'').trim()) throw Error('Company is required');
+  if (!valid(a.stage, STAGES)) throw Error('Invalid stage');
+  if (!valid(a.evidence, EVIDENCE)) throw Error('Invalid evidence state');
+  if (a.source && !/^https?:\/\//i.test(a.source)) throw Error('Source URL must be HTTP(S)');
+  return a;
+}
+function addAccount(data, input) {
+  const a = validateAccount({...input, stage:'SOURCED', evidence:'HYPOTHESIS'});
+  if (data.accounts.some(x=>x.track===a.track && x.company.toLowerCase()===a.company.trim().toLowerCase())) throw Error('Duplicate company within track');
+  const account={...a,id:crypto.randomUUID(),company:a.company.trim(),next:a.next||'Verify evidence and contact route',createdAt:new Date().toISOString()};
+  return {...data,accounts:[...data.accounts,account]};
+}
+const REQUIREMENTS = {
+  PUBLIC_EVIDENCE:['source'],
+  BUYER_CONFIRMED:['receipt','actor'],
+  TRANSACTION_VERIFIED:['receipt','actor']
+};
+function addEvent(data, accountId, input) {
+  const a=data.accounts.find(x=>x.id===accountId);
+  if(!a) throw Error('Account not found');
+  if(!input.type || !input.note?.trim()) throw Error('Event type and factual note are required');
+  if(!input.receipt?.trim()) throw Error('A receipt/reference is required to record external events');
+  const allowed=['ATTEMPT','DELIVERED','REPLY','DISCOVERY','NEXT_STEP','PROPOSAL','PILOT_AUTHORIZED','PAYMENT','PARTNER_ACTIVE','REDEMPTION','REJECTION','EVIDENCE','MEETING_BOOKED','HANDOFF_ACCEPTED'];
+  if(!allowed.includes(input.type)) throw Error('Invalid event type');
+  if (input.type==='MEETING_BOOKED') {
+    if(a.track!=='REALX') throw Error('Merchant meeting belongs to REALX');
+    if(!input.actor?.trim()) throw Error('Meeting needs a confirmed contact/actor');
+    if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(input.meetingAt||'')) throw Error('Meeting needs an exact local date/time');
+  }
+  if (input.type==='HANDOFF_ACCEPTED') {
+    if(a.track!=='REALX') throw Error('AE handoff belongs to REALX');
+    if(!input.actor?.trim()) throw Error('Handoff needs accepting AE');
+    if(!data.events.some(e=>e.accountId===accountId&&e.type==='MEETING_BOOKED')) throw Error('Book a meeting before AE handoff');
+  }
+  if(input.type==='PAYMENT' && (!Number.isFinite(Number(input.amount)) || Number(input.amount)<=0)) throw Error('Payment needs positive amount');
+  if(input.type==='PAYMENT' && a.track!=='PAID_B2B') throw Error('Only PAID_B2B cash receipts belong in this revenue measure');
+  if(input.type==='REDEMPTION' && a.track!=='REALX') throw Error('Redemption belongs to REALX');
+  const event={id:crypto.randomUUID(),accountId,track:a.track,at:new Date().toISOString(),type:input.type,note:input.note.trim(),receipt:input.receipt.trim(),actor:input.actor||'',meetingAt:input.type==='MEETING_BOOKED'?input.meetingAt:undefined,amount:input.type==='PAYMENT'?Number(input.amount):0};
+  const eventStage={ATTEMPT:'CONTACTED',REPLY:'REPLIED',MEETING_BOOKED:'MEETING_BOOKED',HANDOFF_ACCEPTED:'HANDOFF',DISCOVERY:'DISCOVERY',PROPOSAL:'PROPOSED',PILOT_AUTHORIZED:'PILOT',PAYMENT:'WON',PARTNER_ACTIVE:'WON',REJECTION:'LOST'}[input.type];
+  const updated={...a};
+  if(eventStage && (STAGES.indexOf(eventStage)>STAGES.indexOf(updated.stage)||eventStage==='LOST')) updated.stage=eventStage;
+  return {...data,events:[...data.events,event],accounts:data.accounts.map(x=>x.id===accountId?updated:x)};
+}
+function promoteEvidence(data, id, state, receipt, actor='') {
+  if(!valid(state,EVIDENCE)) throw Error('Unknown evidence state');
+  const a=data.accounts.find(x=>x.id===id);if(!a)throw Error('Account not found');
+  for(const field of REQUIREMENTS[state]||[]) {
+    if(field==='source' && !a.source)throw Error('Public evidence needs a source URL');
+    if(field==='receipt' && !receipt?.trim())throw Error('Evidence promotion needs a receipt');
+    if(field==='actor' && !actor.trim())throw Error('Buyer/transaction confirmation needs an actor');
+  }
+  if(EVIDENCE.indexOf(state)<EVIDENCE.indexOf(a.evidence)) throw Error('Evidence cannot be downgraded through promotion');
+  const next={...data,accounts:data.accounts.map(x=>x.id===id?{...x,evidence:state,stage:x.stage==='SOURCED'?'VERIFIED':x.stage}:x)};
+  return state==='HYPOTHESIS'?next:addEvent(next,id,{type:'EVIDENCE',note:`Promoted to ${state}`,receipt:receipt||a.source,actor});
+}
+function metrics(data,track){
+  const accounts=data.accounts.filter(a=>a.track===track), ids=new Set(accounts.map(a=>a.id));
+  const ev=data.events.filter(e=>ids.has(e.accountId));
+  const distinct=type=>new Set(ev.filter(e=>e.type===type).map(e=>e.accountId)).size;
+  const count=(...types)=>new Set(ev.filter(e=>types.includes(e.type)).map(e=>e.accountId)).size;
+  const approached=distinct('ATTEMPT'),replied=distinct('REPLY'), discoveries=distinct('DISCOVERY');
+  return {accounts:accounts.length,attempted:approached,replied,discoveries,commitments:distinct('NEXT_STEP'),pilots:distinct('PILOT_AUTHORIZED'),paidAccounts:distinct('PAYMENT'),collectedQAR:track==='PAID_B2B'?ev.filter(e=>e.type==='PAYMENT').reduce((s,e)=>s+e.amount,0):null,activePartners:track==='REALX'?distinct('PARTNER_ACTIVE'):null,meetingsBooked:track==='REALX'?distinct('MEETING_BOOKED'):null,handoffsAccepted:track==='REALX'?distinct('HANDOFF_ACCEPTED'):null,redemptions:track==='REALX'?ev.filter(e=>e.type==='REDEMPTION').length:null,replyRate:approached?replied/approached:null,discoveryRate:replied?discoveries/replied:null};
+}
+function validateImport(data){
+  if(!data || data.schema!==2 || !Array.isArray(data.accounts) || !Array.isArray(data.events)) throw Error('Expected MarketOS v2 JSON export');
+  const ids=new Set();for(const a of data.accounts){validateAccount(a);if(!a.id||ids.has(a.id))throw Error('Duplicate/missing account id');ids.add(a.id)}
+  for(const e of data.events){if(!ids.has(e.accountId)||!e.id||!e.type||!e.receipt)throw Error('Invalid orphan or incomplete event')}
+  return data;
+}
+function csvExport(data){
+  const headers=['track','company','stage','evidence','source','buyer','contact','pain','next','id'];
+  const quote=s=>'"'+String(s??'').replaceAll('"','""')+'"';
+  return [headers.join(','),...data.accounts.map(a=>headers.map(k=>quote(a[k])).join(','))].join('\r\n');
+}
+function gapReport(data,track){
+ const missing=[];
+ for(const a of data.accounts.filter(x=>x.track===track)) {
+   if(!a.source)missing.push({account:a.company,gap:'No source URL',action:'Verify company and attach source'});
+   if(!a.contact)missing.push({account:a.company,gap:'No contact route',action:'Identify publicly listed business route'});
+   if(!a.buyer)missing.push({account:a.company,gap:'No buyer role',action:'Identify decision owner'});
+   if(!data.events.some(e=>e.accountId===a.id && e.type==='ATTEMPT'))missing.push({account:a.company,gap:'No outreach attempt',action:'Make one permitted actual contact'});
+ }
+ return missing;
+}
+
+
+// CSV reader handles escaped quotes, commas, CRLF and line breaks within quoted cells.
+function parseCSV(source) {
+  const raw=String(source||'').replace(/^\uFEFF/,'');
+  let rows=[], row=[], cell='', quotes=false;
+  for(let i=0;i<raw.length;i++){
+    const ch=raw[i];
+    if(ch==='"'){
+      if(quotes && raw[i+1]==='"'){cell+='"';i++} else quotes=!quotes;
+    }else if(ch===','&&!quotes){row.push(cell);cell=''}
+    else if((ch==='\n'||ch==='\r')&&!quotes){
+      if(ch==='\r'&&raw[i+1]==='\n')i++;
+      row.push(cell);if(row.some(x=>x.trim()))rows.push(row);row=[];cell='';
+    }else cell+=ch;
+  }
+  if(quotes)throw Error('CSV has an unmatched quote');
+  if(cell||row.length){row.push(cell);if(row.some(x=>x.trim()))rows.push(row)}
+  if(!rows.length)return [];
+  const headers=rows.shift().map(h=>h.trim());
+  if(!headers.includes('company'))throw Error('CSV must contain a company column');
+  return rows.map((values,i)=>({__row:i+2,...Object.fromEntries(headers.map((h,j)=>[h,(values[j]||'').trim()]))}));
+}
+const FOOD_SEGMENTS=['Food/','Events/Catering'];
+const isMerchantCandidate = row => FOOD_SEGMENTS.some(s=>(row.sector||'').startsWith(s));
+function importCandidates(data, rows, {foodOnly=true}={}) {
+  let next=data, added=0, duplicate=0, skipped=0;
+  for(const row of rows){
+    if(!row.company?.trim()||(foodOnly&&!isMerchantCandidate(row))){skipped++;continue;}
+    const source=row.instagram_url?.startsWith('https://')?row.instagram_url:row.directory_source;
+    if(!source?.startsWith('https://')){skipped++;continue;}
+    try{
+      next=addAccount(next,{track:'REALX',company:row.company,source,buyer:'',contact:'',pain:'UNVERIFIED — '+(row.hypothesis_to_check||'Student offer fit'),next:'Verify live profile and request decision-maker introduction',sector:row.sector||'',instagram:row.instagram_url||'',directorySource:row.directory_source||'',sourceStatus:'DIRECTORY_CANDIDATE',hypothesis:'STUDENT_ACQUISITION',permission:'UNCONFIRMED',profileVerified:false,ownerVerified:false});
+      added++;
+    }catch(error){if(error.message.includes('Duplicate company'))duplicate++;else throw error;}
+  }
+  return {data:next,added,duplicate,skipped};
+}
+const HYPOTHESES={
+ STUDENT_ACQUISITION:{title:'Reach verified students',question:'Are you actively trying to bring in more university students, or is that not a priority?',value:'Student-specific offer discovery'},
+ OFF_PEAK:{title:'Test quieter trading hours',question:'Are there quieter periods when a student-only offer would be worth testing?',value:'Targeted student visits during an owner-confirmed quiet period'}
+};
+function draftConversation(account, hypothesis='STUDENT_ACQUISITION', channel='IN_PERSON') {
+ const h=HYPOTHESES[hypothesis];if(!h)throw Error('Unknown hypothesis');
+ if(!account||!account.company)throw Error('Account missing');
+ const company=account.company;
+ if(channel==='IN_PERSON')return `Hi, is the person responsible for local promotions or partnerships available? I'm helping RealX explore student offers in Qatar. ${h.question}`;
+ if(channel==='PHONE')return `Hello, I'm calling about a potential student offer for ${company}. Could you direct me to whoever manages promotions or partnerships? ${h.question}`;
+ if(channel==='EMAIL' || channel==='DM'){
+   if(account.permission!=='CONSENTED'||!account.permissionRef?.trim())throw Error('Electronic marketing draft is gated until recipient consent and evidence reference are recorded');
+   if(!account.outreachAuthorized||!account.authorizationRef?.trim())throw Error('RealX outreach authorization and approval reference required');
+   return `Hello, following our agreed contact, I'm helping RealX explore student offers in Qatar. ${h.question} If useful, may I arrange a short discussion with our partnerships team? If you'd prefer no further messages, please let me know.`;
+ }
+ throw Error('Unsupported channel');
+}
+function canHandoff(account,events){
+ const booked=events.filter(e=>e.accountId===account?.id&&e.type==='MEETING_BOOKED').at(-1);
+ const gaps=[];
+ if(!account)gaps.push('Select an account');
+ else{
+  if(!account.ownerVerified || !account.buyer?.trim())gaps.push('Confirm decision-maker role');
+  if(!account.contact?.trim())gaps.push('Record a permitted contact route');
+ }
+ if(!booked)gaps.push('Log a confirmed meeting with date/time and reference');
+ return {ready:gaps.length===0,gaps,booked};
+}
+function buildHandoff(account,events){
+ const check=canHandoff(account,events);
+ if(!check.ready)throw Error('AE handoff blocked: '+check.gaps.join('; '));
+ const last=events.filter(e=>e.accountId===account.id).slice(-8);
+ const clean=s=>String(s??'').replace(/\s+/g,' ').trim();
+ return [
+  'REALX — MERCHANT MEETING HANDOFF (LOCAL DRAFT)',
+  `Company: ${clean(account.company)}`,
+  `Source: ${clean(account.source)}`,
+  `Decision owner (user-confirmed): ${clean(account.buyer)}`,
+  `Permitted route: ${clean(account.contact)}`,
+  `Value hypothesis: ${HYPOTHESES[account.hypothesis||'STUDENT_ACQUISITION'].title}`,
+  `Buyer-confirmed need (if any): ${clean(account.confirmedNeed)||'NOT CONFIRMED'}`,
+  `Booked date/time (Qatar local): ${check.booked.meetingAt}`,
+  `Meeting confirmation actor: ${clean(check.booked.actor)}`,
+  `Meeting receipt (self-entered; not provider verified): ${clean(check.booked.receipt)}`,
+  `Last events: ${last.map(e=>`${e.type} (${clean(e.note)}; ${clean(e.receipt)})`).join(' | ')}`,
+  'Next: AE confirms receipt, holds discovery, agrees approved merchant terms.',
+  'No merchant partnership or redemption is inferred from this booking.'
+ ].join('\n');
+}
+function csvSafe(s){const x=String(s??'');return '"'+(/^[=+@\-\t\r]/.test(x)?"'":"")+x.replaceAll('"','""')+'"';}
+function realxExport(data){
+ const fields=['company','source','sector','stage','buyer','ownerVerified','contact','permission','hypothesis','profileVerified','confirmedNeed','next'];
+ return [fields.join(','),...data.accounts.filter(a=>a.track==='REALX').map(a=>fields.map(k=>csvSafe(a[k])).join(','))].join('\r\n');
+}
+
+
+
+const $=id=>document.getElementById(id);
+const storage='marketos-v2-evidence'; // The SAME canonical local ledger used by existing V2 route.
+let db=blank(),selectedId=null;
+try{const s=localStorage.getItem(storage);if(s)db=validateImport(JSON.parse(s))}catch(e){console.warn('Invalid existing V2 ledger',e)}
+const getSelected=()=>db.accounts.find(a=>a.id===selectedId&&a.track==='REALX');
+const all=()=>db.accounts.filter(a=>a.track==='REALX');
+const actual=()=>db.events.filter(e=>e.track==='REALX');
+function node(tag,value,cls){const x=document.createElement(tag);if(cls)x.className=cls;x.textContent=String(value??'');return x}
+function notify(message,error=false){const t=$('toast');t.textContent=message;t.className='toast'+(error?' error':'')}
+function save(){try{localStorage.setItem(storage,JSON.stringify(db))}catch(e){console.warn('Browser persistence unavailable; export JSON to keep records.',e)}render()}
+function viewAccount(id){selectedId=id;render()}
+function render(){
+ const accounts=all();if(!accounts.some(a=>a.id===selectedId))selectedId=accounts[0]?.id||null;
+ const ms=metrics(db,'REALX');
+ $('kpis').replaceChildren(...[['Candidates',ms.accounts],['Attempted',ms.attempted],['Replied',ms.replied],['Meetings',ms.meetingsBooked],['AE accepts',ms.handoffsAccepted],['Reported partners',ms.activePartners]].map(([k,v])=>{const d=node('div','','metric');d.append(node('strong',v),node('span',k));return d}));
+ const q=$('search').value.trim().toLowerCase(),f=$('filter').value;
+ const shown=accounts.filter(a=>(!q||(`${a.company} ${a.sector||''}`).toLowerCase().includes(q))&&(f==='ALL'||a.stage===f));
+ $('queueCount').textContent=`${shown.length} / ${accounts.length} accounts`;
+ $('leads').replaceChildren(...(shown.length?shown.map(a=>{const b=node('button','','lead'+(a.id===selectedId?' active':''));b.type='button';const name=node('div','','leadtitle');name.append(node('span',a.company),node('span',a.stage,'tag'+(a.stage==='SOURCED'?' warn':'')));b.append(name,node('div',`${a.sector||'Unclassified'} · ${a.profileVerified?'Profile checked':'Profile unverified'} · ${a.buyer||'Owner unknown'}`,'leaddetail'));b.addEventListener('click',()=>viewAccount(a.id));return b}):[node('p','No matching accounts.','muted')]));
+ const a=getSelected(), disabled=!a;
+ $('profileForm').querySelectorAll('input,textarea,select,button').forEach(x=>x.disabled=disabled);
+ $('eventForm').querySelectorAll('input,textarea,select,button').forEach(x=>x.disabled=disabled);
+ for(const id of ['hypothesis','channel','copyDraft','copyHandoff'])$(id).disabled=disabled;
+ $('selected').textContent=a?`${a.company} · ${a.sector||'unknown segment'} · ${a.evidence} · ${a.sourceStatus||'manual'}`:'Load candidate data or select an account.';
+ if(a){
+  for(const [id,v] of [['buyer',a.buyer],['contact',a.contact],['confirmedNeed',a.confirmedNeed],['permission',a.permission||'UNCONFIRMED'],['permissionRef',a.permissionRef],['authorizationRef',a.authorizationRef],['nextAction',a.next],['hypothesis',a.hypothesis||'STUDENT_ACQUISITION']])$(id).value=v||((id==='permission')?'UNCONFIRMED':'');
+  $('profileVerified').checked=!!a.profileVerified;$('ownerVerified').checked=!!a.ownerVerified;$('outreachAuthorized').checked=!!a.outreachAuthorized;
+  $('profileLink').href=a.source||'#';$('profileLink').textContent='Open company source';
+ }else{$('profileLink').removeAttribute('href')}
+ renderDraft();renderHandoff();
+ $('funnel').textContent=`${ms.attempted} unique approached · ${ms.replied} replied · ${ms.meetingsBooked} booked meeting(s) · ${ms.handoffsAccepted} accepted handoff(s). Reply / approached: ${ms.replyRate===null?'N/A':(ms.replyRate*100).toFixed(1)+'%'}. Meeting / approached: ${ms.attempted?(ms.meetingsBooked/ms.attempted*100).toFixed(1)+'%':'N/A'}. No actual CAC calculation without verified cost and acquisition data.`;
+ const byId=new Map(accounts.map(a=>[a.id,a.company]));
+ $('events').replaceChildren(...(actual().length?actual().slice(-12).reverse().map(e=>{const p=node('p',`${e.at.slice(0,16)} · ${byId.get(e.accountId)||'Unknown'} · ${e.type} · ref: ${e.receipt}`);p.className='mini';return p}):[node('p','No documented attempts or commitments yet.')]));
+}
+function renderDraft(){const a=getSelected();if(!a){$('draft').textContent='No account selected.';return}
+ try{$('draft').textContent=draftConversation(a,$('hypothesis').value,$('channel').value)}catch(e){$('draft').textContent=`DRAFT BLOCKED: ${e.message}. Use the in-person opener until permission and authorization exist.`}
+}
+function renderHandoff(){const a=getSelected();if(!a){$('handoff').textContent='No account selected.';return}
+ const check=canHandoff(a,db.events);
+ $('handoffStatus').textContent=check.ready?'Ready to copy for authorized AE review. Not yet AE accepted.':'Blocked: '+check.gaps.join('; ');
+ $('handoff').textContent=check.ready?buildHandoff(a,db.events):'No valid handoff until a confirmed meeting, decision owner, and route exist.';
+}
+$('loadSeed').onclick=async()=>{try{const res=importCandidates(db,parseCSV(EMBEDDED_FOOD_CSV));db=res.data;save();notify(`${res.added} directory candidates added; ${res.duplicate} duplicates. Profiles NOT independently verified.`)}catch(e){notify(e.message,true)}};
+$('importCsv').onclick=()=>$('csvInput').click();
+$('csvInput').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const result=importCandidates(db,parseCSV(await f.text()));db=result.data;save();notify(`${result.added} food-sector candidates imported, ${result.duplicate} duplicates, ${result.skipped} skipped.`)}catch(err){notify(err.message,true)}finally{e.target.value=''}};
+$('search').oninput=render;$('filter').onchange=render;
+$('profileForm').onsubmit=e=>{e.preventDefault();const a=getSelected();if(!a)return;
+ const buyer=$('buyer').value.trim(),contact=$('contact').value.trim(),ownerVerified=$('ownerVerified').checked;
+ const permission=$('permission').value,permissionRef=$('permissionRef').value.trim(),outreachAuthorized=$('outreachAuthorized').checked,authorizationRef=$('authorizationRef').value.trim();
+ if(ownerVerified&&!buyer)return notify('Verified owner requires role/name',true);
+ if(permission==='CONSENTED'&&!permissionRef)return notify('Recorded consent requires evidence reference',true);
+ if(outreachAuthorized&&!authorizationRef)return notify('Team authorization requires an approval reference',true);
+ const updates={buyer,contact,ownerVerified,profileVerified:$('profileVerified').checked,confirmedNeed:$('confirmedNeed').value.trim(),permission,permissionRef,outreachAuthorized,authorizationRef,hypothesis:$('hypothesis').value,next:$('nextAction').value.trim()};
+ db={...db,accounts:db.accounts.map(x=>x.id===a.id?{...x,...updates}:x)};
+ if(updates.profileVerified && a.evidence==='HYPOTHESIS' && a.source){try{db=promoteEvidence(db,a.id,'PUBLIC_EVIDENCE',a.source)}catch(err){notify(err.message,true)}}
+ save();notify('Saved locally. Live source verification and permission claims remain operator-reported.')
+};
+$('hypothesis').onchange=()=>{const a=getSelected();if(!a)return;db={...db,accounts:db.accounts.map(x=>x.id===a.id?{...x,hypothesis:$('hypothesis').value}:x)};save()};
+$('channel').onchange=renderDraft;
+$('copyDraft').onclick=async()=>{try{const a=getSelected();const d=draftConversation(a,$('hypothesis').value,$('channel').value);await navigator.clipboard.writeText(d);notify('Copied. Message was NOT sent.')}catch(e){notify(e.message,true)}};
+$('eventType').onchange=()=>{$('meetingField').hidden=$('eventType').value!=='MEETING_BOOKED'};
+$('eventForm').onsubmit=e=>{e.preventDefault();const a=getSelected();if(!a)return;
+ const type=$('eventType').value,actor=$('eventActor').value.trim(),note=$('eventNote').value.trim(),receipt=$('eventReceipt').value.trim(),meetingAt=$('meetingAt').value;
+ try{db=addEvent(db,a.id,{type,actor,note,receipt,meetingAt});save();$('eventForm').reset();$('meetingField').hidden=true;notify(`Logged ${type}. External receipt reference is self-entered; no automated verification.`)}catch(err){notify(err.message,true)}};
+$('copyHandoff').onclick=async()=>{try{await navigator.clipboard.writeText(buildHandoff(getSelected(),db.events));notify('AE handoff copied. No meeting invite or message was automatically sent.')}catch(err){notify(err.message,true)}};
+function download(name,body,mime){const blob=new Blob([body],{type:mime});const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+$('exportJson').onclick=()=>download('realx-marketos-v2-ledger.json',JSON.stringify(db,null,2),'application/json');
+$('exportCsv').onclick=()=>download('realx-ae-account-queue.csv',realxExport(db),'text/csv;charset=utf-8');
+render();
+
+</script></body></html>
